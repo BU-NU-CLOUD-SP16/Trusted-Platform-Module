@@ -115,7 +115,7 @@ def fake_start_stop_invalid_state(self, context, instance):
 
 
 def fake_instance_get_by_uuid_not_found(context, uuid,
-                                        columns_to_join, use_slave=False):
+                                        columns_to_join, use_subordinate=False):
     raise exception.InstanceNotFound(instance_id=uuid)
 
 

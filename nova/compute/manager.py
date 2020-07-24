@@ -792,7 +792,7 @@ class ComputeManager(manager.Manager):
                 return objects.InstanceList()
             filters['uuid'] = driver_uuids
             local_instances = objects.InstanceList.get_by_filters(
-                context, filters, use_slave=True)
+                context, filters, use_subordinate=True)
             return local_instances
         except NotImplementedError:
             pass
@@ -801,7 +801,7 @@ class ComputeManager(manager.Manager):
         # to brute force.
         driver_instances = self.driver.list_instances()
         instances = objects.InstanceList.get_by_filters(context, filters,
-                                                        use_slave=True)
+                                                        use_subordinate=True)
         name_map = {instance.name: instance for instance in instances}
         local_instances = []
         for driver_instance in driver_instances:
@@ -1524,7 +1524,7 @@ class ComputeManager(manager.Manager):
                    'host': self.host}
 
         building_insts = objects.InstanceList.get_by_filters(context,
-                           filters, expected_attrs=[], use_slave=True)
+                           filters, expected_attrs=[], use_subordinate=True)
 
         for instance in building_insts:
             if timeutils.is_older_than(instance.created_at, timeout):
@@ -1801,7 +1801,7 @@ class ComputeManager(manager.Manager):
         context = context.elevated()
         instances = objects.InstanceList.get_by_host(context, self.host,
                                                      expected_attrs=[],
-                                                     use_slave=True)
+                                                     use_subordinate=True)
         uuids = [instance.uuid for instance in instances]
         self.scheduler_client.sync_instance_info(context, self.host, uuids)
 
@@ -5739,7 +5739,7 @@ class ComputeManager(manager.Manager):
             # The list of instances to heal is empty so rebuild it
             LOG.debug('Rebuilding the list of instances to heal')
             db_instances = objects.InstanceList.get_by_host(
-                context, self.host, expected_attrs=[], use_slave=True)
+                context, self.host, expected_attrs=[], use_subordinate=True)
             for inst in db_instances:
                 # We don't want to refresh the cache for instances
                 # which are building or deleting so don't put them
@@ -5770,7 +5770,7 @@ class ComputeManager(manager.Manager):
                             context, instance_uuids.pop(0),
                             expected_attrs=['system_metadata', 'info_cache',
                                             'flavor'],
-                            use_slave=True)
+                            use_subordinate=True)
                 except exception.InstanceNotFound:
                     # Instance is gone.  Try to grab another.
                     continue
@@ -5821,7 +5821,7 @@ class ComputeManager(manager.Manager):
                         task_states.REBOOT_PENDING],
                        'host': self.host}
             rebooting = objects.InstanceList.get_by_filters(
-                context, filters, expected_attrs=[], use_slave=True)
+                context, filters, expected_attrs=[], use_subordinate=True)
 
             to_poll = []
             for instance in rebooting:
@@ -5838,7 +5838,7 @@ class ComputeManager(manager.Manager):
                        'host': self.host}
             rescued_instances = objects.InstanceList.get_by_filters(
                 context, filters, expected_attrs=["system_metadata"],
-                use_slave=True)
+                use_subordinate=True)
 
             to_unrescue = []
             for instance in rescued_instances:
@@ -5856,7 +5856,7 @@ class ComputeManager(manager.Manager):
 
         migrations = objects.MigrationList.get_unconfirmed_by_dest_compute(
                 context, CONF.resize_confirm_window, self.host,
-                use_slave=True)
+                use_subordinate=True)
 
         migrations_info = dict(migration_count=len(migrations),
                 confirm_window=CONF.resize_confirm_window)
@@ -5885,7 +5885,7 @@ class ComputeManager(manager.Manager):
             try:
                 instance = objects.Instance.get_by_uuid(context,
                             instance_uuid, expected_attrs=expected_attrs,
-                            use_slave=True)
+                            use_subordinate=True)
             except exception.InstanceNotFound:
                 reason = (_("Instance %s not found") %
                           instance_uuid)
@@ -5946,7 +5946,7 @@ class ComputeManager(manager.Manager):
                    'host': self.host}
         shelved_instances = objects.InstanceList.get_by_filters(
             context, filters=filters, expected_attrs=['system_metadata'],
-            use_slave=True)
+            use_subordinate=True)
 
         to_gc = []
         for instance in shelved_instances:
@@ -5979,7 +5979,7 @@ class ComputeManager(manager.Manager):
             context, begin, end, host=self.host,
             expected_attrs=['system_metadata', 'info_cache', 'metadata',
                             'flavor'],
-            use_slave=True)
+            use_subordinate=True)
         num_instances = len(instances)
         errors = 0
         successes = 0
@@ -6042,7 +6042,7 @@ class ComputeManager(manager.Manager):
 
             instances = objects.InstanceList.get_by_host(context,
                                                               self.host,
-                                                              use_slave=True)
+                                                              use_subordinate=True)
             try:
                 bw_counters = self.driver.get_all_bw_counters(instances)
             except NotImplementedError:
@@ -6067,7 +6067,7 @@ class ComputeManager(manager.Manager):
                 last_ctr_out = None
                 usage = objects.BandwidthUsage.get_by_instance_uuid_and_mac(
                     context, bw_ctr['uuid'], bw_ctr['mac_address'],
-                    start_period=start_time, use_slave=True)
+                    start_period=start_time, use_subordinate=True)
                 if usage:
                     bw_in = usage.bw_in
                     bw_out = usage.bw_out
@@ -6077,7 +6077,7 @@ class ComputeManager(manager.Manager):
                     usage = (objects.BandwidthUsage.
                              get_by_instance_uuid_and_mac(
                         context, bw_ctr['uuid'], bw_ctr['mac_address'],
-                        start_period=prev_time, use_slave=True))
+                        start_period=prev_time, use_subordinate=True))
                     if usage:
                         last_ctr_in = usage.last_ctr_in
                         last_ctr_out = usage.last_ctr_out
@@ -6107,14 +6107,14 @@ class ComputeManager(manager.Manager):
                                               last_refreshed=refreshed,
                                               update_cells=update_cells)
 
-    def _get_host_volume_bdms(self, context, use_slave=False):
+    def _get_host_volume_bdms(self, context, use_subordinate=False):
         """Return all block device mappings on a compute host."""
         compute_host_bdms = []
         instances = objects.InstanceList.get_by_host(context, self.host,
-            use_slave=use_slave)
+            use_subordinate=use_subordinate)
         for instance in instances:
             bdms = objects.BlockDeviceMappingList.get_by_instance_uuid(
-                    context, instance.uuid, use_slave=use_slave)
+                    context, instance.uuid, use_subordinate=use_subordinate)
             instance_bdms = [bdm for bdm in bdms if bdm.is_volume]
             compute_host_bdms.append(dict(instance=instance,
                                           instance_bdms=instance_bdms))
@@ -6146,7 +6146,7 @@ class ComputeManager(manager.Manager):
             return
 
         compute_host_bdms = self._get_host_volume_bdms(context,
-                                                       use_slave=True)
+                                                       use_subordinate=True)
         if not compute_host_bdms:
             return
 
@@ -6172,7 +6172,7 @@ class ComputeManager(manager.Manager):
         """
         db_instances = objects.InstanceList.get_by_host(context, self.host,
                                                         expected_attrs=[],
-                                                        use_slave=True)
+                                                        use_subordinate=True)
 
         num_vm_instances = self.driver.get_num_instances()
         num_db_instances = len(db_instances)
@@ -6231,14 +6231,14 @@ class ComputeManager(manager.Manager):
             self._sync_instance_power_state(context,
                                             db_instance,
                                             vm_power_state,
-                                            use_slave=True)
+                                            use_subordinate=True)
         except exception.InstanceNotFound:
             # NOTE(hanlind): If the instance gets deleted during sync,
             # silently ignore.
             pass
 
     def _sync_instance_power_state(self, context, db_instance, vm_power_state,
-                                   use_slave=False):
+                                   use_subordinate=False):
         """Align instance power state between the database and hypervisor.
 
         If the instance is not found on the hypervisor, but is in the database,
@@ -6247,7 +6247,7 @@ class ComputeManager(manager.Manager):
 
         # We re-query the DB to get the latest instance info to minimize
         # (not eliminate) race condition.
-        db_instance.refresh(use_slave=use_slave)
+        db_instance.refresh(use_subordinate=use_subordinate)
         db_power_state = db_instance.power_state
         vm_state = db_instance.vm_state
 
@@ -6422,7 +6422,7 @@ class ComputeManager(manager.Manager):
         instances = objects.InstanceList.get_by_filters(
             context, filters,
             expected_attrs=objects.instance.INSTANCE_DEFAULT_FIELDS,
-            use_slave=True)
+            use_subordinate=True)
         for instance in instances:
             if self._deleted_old_enough(instance, interval):
                 bdms = objects.BlockDeviceMappingList.get_by_instance_uuid(
@@ -6472,7 +6472,7 @@ class ComputeManager(manager.Manager):
         """
 
         compute_nodes_in_db = self._get_compute_nodes_in_db(context,
-                                                            use_slave=True)
+                                                            use_subordinate=True)
         nodenames = set(self.driver.get_available_nodes())
         for nodename in nodenames:
             self.update_available_resource_for_node(context, nodename)
@@ -6487,10 +6487,10 @@ class ComputeManager(manager.Manager):
                 LOG.info(_LI("Deleting orphan compute node %s"), cn.id)
                 cn.destroy()
 
-    def _get_compute_nodes_in_db(self, context, use_slave=False):
+    def _get_compute_nodes_in_db(self, context, use_subordinate=False):
         try:
             return objects.ComputeNodeList.get_all_by_host(context, self.host,
-                                                           use_slave=use_slave)
+                                                           use_subordinate=use_subordinate)
         except exception.NotFound:
             LOG.error(_LE("No compute node record for host %s"), self.host)
             return []
@@ -6557,7 +6557,7 @@ class ComputeManager(manager.Manager):
                                  "DELETED but still present on host."),
                              instance.name, instance=instance)
                     bdms = objects.BlockDeviceMappingList.get_by_instance_uuid(
-                        context, instance.uuid, use_slave=True)
+                        context, instance.uuid, use_subordinate=True)
                     self.instance_events.clear_events_for_instance(instance)
                     try:
                         self._shutdown_instance(context, instance, bdms,
@@ -6625,11 +6625,11 @@ class ComputeManager(manager.Manager):
                 self._set_instance_obj_error_state(context, instance)
 
     @wrap_exception()
-    def add_aggregate_host(self, context, aggregate, host, slave_info):
+    def add_aggregate_host(self, context, aggregate, host, subordinate_info):
         """Notify hypervisor of change (for hypervisor pools)."""
         try:
             self.driver.add_to_aggregate(context, aggregate, host,
-                                         slave_info=slave_info)
+                                         subordinate_info=subordinate_info)
         except NotImplementedError:
             LOG.debug('Hypervisor driver does not support '
                       'add_aggregate_host')
@@ -6641,11 +6641,11 @@ class ComputeManager(manager.Manager):
                                     aggregate, host)
 
     @wrap_exception()
-    def remove_aggregate_host(self, context, host, slave_info, aggregate):
+    def remove_aggregate_host(self, context, host, subordinate_info, aggregate):
         """Removes a host from a physical hypervisor pool."""
         try:
             self.driver.remove_from_aggregate(context, aggregate, host,
-                                              slave_info=slave_info)
+                                              subordinate_info=subordinate_info)
         except NotImplementedError:
             LOG.debug('Hypervisor driver does not support '
                       'remove_aggregate_host')
@@ -6740,7 +6740,7 @@ class ComputeManager(manager.Manager):
                    'soft_deleted': True,
                    'host': nodes}
         filtered_instances = objects.InstanceList.get_by_filters(context,
-                                 filters, expected_attrs=[], use_slave=True)
+                                 filters, expected_attrs=[], use_subordinate=True)
 
         self.driver.manage_image_cache(context, filtered_instances)
 
@@ -6755,7 +6755,7 @@ class ComputeManager(manager.Manager):
         attrs = ['info_cache', 'security_groups', 'system_metadata']
         with utils.temporary_mutation(context, read_deleted='yes'):
             instances = objects.InstanceList.get_by_filters(
-                context, filters, expected_attrs=attrs, use_slave=True)
+                context, filters, expected_attrs=attrs, use_subordinate=True)
         LOG.debug('There are %d instances to clean', len(instances))
 
         for instance in instances:
@@ -6799,7 +6799,7 @@ class ComputeManager(manager.Manager):
         attrs = ['info_cache', 'security_groups', 'system_metadata']
         with utils.temporary_mutation(context, read_deleted='yes'):
             instances = objects.InstanceList.get_by_filters(
-                context, inst_filters, expected_attrs=attrs, use_slave=True)
+                context, inst_filters, expected_attrs=attrs, use_subordinate=True)
 
         for instance in instances:
             for migration in migrations:

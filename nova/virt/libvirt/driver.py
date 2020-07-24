@@ -7128,7 +7128,7 @@ class LibvirtDriver(driver.ComputeDriver):
         # in _update_available_resource method for calculating usages based
         # on instance utilization.
         local_instance_list = objects.InstanceList.get_by_filters(
-            ctx, filters, use_slave=True)
+            ctx, filters, use_subordinate=True)
         # Convert instance list to dictionary with instace uuid as key.
         local_instances = {inst.uuid: inst for inst in local_instance_list}
 

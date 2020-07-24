@@ -91,7 +91,7 @@ class InstanceActionsPolicyTestV21(test.NoDBTestCase):
 
         def fake_instance_get_by_uuid(context, instance_id,
                                       columns_to_join=None,
-                                      use_slave=False):
+                                      use_subordinate=False):
             return fake_instance.fake_db_instance(
                 **{'name': 'fake', 'project_id': '%s_unequal' %
                        context.project_id})
@@ -107,7 +107,7 @@ class InstanceActionsPolicyTestV21(test.NoDBTestCase):
 
         def fake_instance_get_by_uuid(context, instance_id,
                                       columns_to_join=None,
-                                      use_slave=False):
+                                      use_subordinate=False):
             return fake_instance.fake_db_instance(
                 **{'name': 'fake', 'project_id': '%s_unequal' %
                        context.project_id})
@@ -143,7 +143,7 @@ class InstanceActionsTestV21(test.NoDBTestCase):
         self.fake_actions = copy.deepcopy(fake_server_actions.FAKE_ACTIONS)
         self.fake_events = copy.deepcopy(fake_server_actions.FAKE_EVENTS)
 
-        def fake_instance_get_by_uuid(context, instance_id, use_slave=False):
+        def fake_instance_get_by_uuid(context, instance_id, use_subordinate=False):
             return fake_instance.fake_instance_obj(None,
                 **{'name': 'fake', 'project_id': context.project_id})
 

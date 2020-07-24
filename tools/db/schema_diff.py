@@ -33,16 +33,16 @@ Run like:
     MYSQL:
 
     ./tools/db/schema_diff.py mysql+pymysql://root@localhost \
-                              master:latest my_branch:82
+                              main:latest my_branch:82
 
     POSTGRESQL:
 
     ./tools/db/schema_diff.py postgresql://localhost \
-                              master:latest my_branch:82
+                              main:latest my_branch:82
 
     DB2:
     ./tools/db/schema_diff.py ibm_db_sa://localhost \
-                              master:latest my_branch:82
+                              main:latest my_branch:82
 """
 
 from __future__ import print_function
@@ -254,12 +254,12 @@ def parse_options():
     try:
         orig_branch, orig_version = sys.argv[2].split(':')
     except IndexError:
-        usage('original branch and version required (e.g. master:82)')
+        usage('original branch and version required (e.g. main:82)')
 
     try:
         new_branch, new_version = sys.argv[3].split(':')
     except IndexError:
-        usage('new branch and version required (e.g. master:82)')
+        usage('new branch and version required (e.g. main:82)')
 
     return db_url, orig_branch, orig_version, new_branch, new_version
 

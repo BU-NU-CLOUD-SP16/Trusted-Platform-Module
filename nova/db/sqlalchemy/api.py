@@ -85,10 +85,10 @@ api_db_opts = [
     cfg.BoolOpt('sqlite_synchronous',
                 default=True,
                 help='If True, SQLite uses synchronous mode.'),
-    cfg.StrOpt('slave_connection',
+    cfg.StrOpt('subordinate_connection',
                secret=True,
                help='The SQLAlchemy connection string to use to connect to the'
-                    ' slave database.'),
+                    ' subordinate database.'),
     cfg.StrOpt('mysql_sql_mode',
                default='TRADITIONAL',
                help='The SQL mode to be used for MySQL sessions. '
@@ -140,7 +140,7 @@ api_context_manager = enginefacade.transaction_context()
 def _get_db_conf(conf_group, connection=None):
     kw = dict(
         connection=connection or conf_group.connection,
-        slave_connection=conf_group.slave_connection,
+        subordinate_connection=conf_group.subordinate_connection,
         sqlite_fk=False,
         __autocommit=True,
         expire_on_commit=False,
@@ -188,14 +188,14 @@ def get_context_manager(context):
     return _context_manager_from_context(context) or main_context_manager
 
 
-def get_engine(use_slave=False, context=None):
+def get_engine(use_subordinate=False, context=None):
     """Get a database engine object.
 
-    :param use_slave: Whether to use the slave connection
+    :param use_subordinate: Whether to use the subordinate connection
     :param context: The request context that can contain a context manager
     """
     ctxt_mgr = _context_manager_from_context(context) or main_context_manager
-    return ctxt_mgr.get_legacy_facade().get_engine(use_slave=use_slave)
+    return ctxt_mgr.get_legacy_facade().get_engine(use_subordinate=use_subordinate)
 
 
 def get_api_engine():
@@ -261,9 +261,9 @@ def require_aggregate_exists(f):
 def select_db_reader_mode(f):
     """Decorator to select synchronous or asynchronous reader mode.
 
-    The kwarg argument 'use_slave' defines reader mode. Asynchronous reader
-    will be used if 'use_slave' is True and synchronous reader otherwise.
-    If 'use_slave' is not specified default value 'False' will be used.
+    The kwarg argument 'use_subordinate' defines reader mode. Asynchronous reader
+    will be used if 'use_subordinate' is True and synchronous reader otherwise.
+    If 'use_subordinate' is not specified default value 'False' will be used.
 
     Wrapped function must have a context in the arguments.
     """
@@ -274,9 +274,9 @@ def select_db_reader_mode(f):
         keyed_args = inspect.getcallargs(wrapped_func, *args, **kwargs)
 
         context = keyed_args['context']
-        use_slave = keyed_args.get('use_slave', False)
+        use_subordinate = keyed_args.get('use_subordinate', False)
 
-        if use_slave:
+        if use_subordinate:
             reader_mode = main_context_manager.async
         else:
             reader_mode = main_context_manager.reader
@@ -6367,7 +6367,7 @@ def archive_deleted_rows(max_rows=None):
     """
     table_to_rows_archived = {}
     total_rows_archived = 0
-    meta = MetaData(get_engine(use_slave=True))
+    meta = MetaData(get_engine(use_subordinate=True))
     meta.reflect()
     # Reverse sort the tables so we get the leaf nodes first for processing.
     for table in reversed(meta.sorted_tables):

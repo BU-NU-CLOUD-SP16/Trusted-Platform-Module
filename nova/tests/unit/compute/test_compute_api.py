@@ -2272,7 +2272,7 @@ class _ComputeAPIUnitTestMixIn(object):
         quiesced = [False, False]
         quiesce_expected = not quiesce_fails and vm_state == vm_states.ACTIVE
 
-        def fake_get_all_by_instance(context, instance, use_slave=False):
+        def fake_get_all_by_instance(context, instance, use_subordinate=False):
             return copy.deepcopy(instance_bdms)
 
         def fake_image_create(context, image_meta, data=None):

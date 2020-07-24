@@ -169,7 +169,7 @@ class BaseTestCase(test.TestCase):
                     self.compute.driver, NODENAME)
         self.compute._resource_tracker_dict[NODENAME] = fake_rt
 
-        def fake_get_compute_nodes_in_db(context, use_slave=False):
+        def fake_get_compute_nodes_in_db(context, use_subordinate=False):
             fake_compute_nodes = [{'local_gb': 259,
                                    'uuid': uuids.fake_compute_node,
                                    'vcpus_used': 0,
@@ -653,7 +653,7 @@ class ComputeVolumeTestCase(BaseTestCase):
         time.time().AndReturn(20)
         time.time().AndReturn(21)
         objects.InstanceList.get_by_host(ctxt, 'fake-mini',
-                                         use_slave=True).AndReturn([])
+                                         use_subordinate=True).AndReturn([])
         self.compute.driver.get_all_bw_counters([]).AndRaise(
             NotImplementedError)
         self.mox.ReplayAll()
@@ -682,10 +682,10 @@ class ComputeVolumeTestCase(BaseTestCase):
         got_host_bdms = self.compute._get_host_volume_bdms('fake-context')
         mock_get_by_host.assert_called_once_with('fake-context',
                                                  self.compute.host,
-                                                 use_slave=False)
+                                                 use_subordinate=False)
         mock_get_by_inst.assert_called_once_with('fake-context',
                                                  uuids.volume_instance,
-                                                 use_slave=False)
+                                                 use_subordinate=False)
         self.assertEqual(expected_host_bdms, got_host_bdms)
 
     def test_poll_volume_usage_disabled(self):
@@ -704,7 +704,7 @@ class ComputeVolumeTestCase(BaseTestCase):
         self.mox.StubOutWithMock(self.compute, '_get_host_volume_bdms')
         self.mox.StubOutWithMock(self.compute.driver, 'get_all_volume_usage')
         # Following methods are called.
-        self.compute._get_host_volume_bdms(ctxt, use_slave=True).AndReturn([])
+        self.compute._get_host_volume_bdms(ctxt, use_subordinate=True).AndReturn([])
         self.mox.ReplayAll()
 
         self.flags(volume_usage_poll_interval=10)
@@ -719,7 +719,7 @@ class ComputeVolumeTestCase(BaseTestCase):
                        lambda x, y: [3, 4])
         # All the mocks are called
         self.compute._get_host_volume_bdms(ctxt,
-                                           use_slave=True).AndReturn([1, 2])
+                                           use_subordinate=True).AndReturn([1, 2])
         self.compute._update_volume_usage_cache(ctxt, [3, 4])
         self.mox.ReplayAll()
         self.flags(volume_usage_poll_interval=10)
@@ -758,7 +758,7 @@ class ComputeVolumeTestCase(BaseTestCase):
         self.compute.driver.block_stats(instance, 'vdb').\
             AndReturn([1, 30, 1, 20, None])
         self.compute._get_host_volume_bdms(self.context,
-                                           use_slave=True).AndReturn(
+                                           use_subordinate=True).AndReturn(
                                                host_volume_bdms)
         self.compute.driver.get_all_volume_usage(
                 self.context, host_volume_bdms).AndReturn(
@@ -6158,9 +6158,9 @@ class ComputeTestCase(BaseTestCase):
         self.compute._shutdown_instance(ctxt, inst1, bdms, notify=False).\
                                         AndRaise(test.TestingException)
         objects.BlockDeviceMappingList.get_by_instance_uuid(ctxt,
-                inst1.uuid, use_slave=True).AndReturn(bdms)
+                inst1.uuid, use_subordinate=True).AndReturn(bdms)
         objects.BlockDeviceMappingList.get_by_instance_uuid(ctxt,
-                inst2.uuid, use_slave=True).AndReturn(bdms)
+                inst2.uuid, use_subordinate=True).AndReturn(bdms)
         self.compute._shutdown_instance(ctxt, inst2, bdms, notify=False).\
                                         AndReturn(None)
 
@@ -6267,13 +6267,13 @@ class ComputeTestCase(BaseTestCase):
                 'get_nw_info': 0, 'expected_instance': None}
 
         def fake_instance_get_all_by_host(context, host,
-                                          columns_to_join, use_slave=False):
+                                          columns_to_join, use_subordinate=False):
             call_info['get_all_by_host'] += 1
             self.assertEqual([], columns_to_join)
             return instances[:]
 
         def fake_instance_get_by_uuid(context, instance_uuid,
-                                      columns_to_join, use_slave=False):
+                                      columns_to_join, use_subordinate=False):
             if instance_uuid not in instance_map:
                 raise exception.InstanceNotFound(instance_id=instance_uuid)
             call_info['get_by_uuid'] += 1
@@ -6283,7 +6283,7 @@ class ComputeTestCase(BaseTestCase):
             return instance_map[instance_uuid]
 
         # NOTE(comstud): Override the stub in setUp()
-        def fake_get_instance_nw_info(context, instance, use_slave=False):
+        def fake_get_instance_nw_info(context, instance, use_subordinate=False):
             # Note that this exception gets caught in compute/manager
             # and is ignored.  However, the below increment of
             # 'get_nw_info' won't happen, and you'll get an assert
@@ -6381,7 +6381,7 @@ class ComputeTestCase(BaseTestCase):
 
         def fake_instance_get_all_by_filters(context, filters,
                                              expected_attrs=None,
-                                             use_slave=False):
+                                             use_subordinate=False):
             self.assertEqual(["system_metadata"], expected_attrs)
             return instances
 
@@ -6431,7 +6431,7 @@ class ComputeTestCase(BaseTestCase):
                        task_states.REBOOTING, task_states.REBOOT_STARTED,
                        task_states.REBOOT_PENDING]}
         get.assert_called_once_with(ctxt, filters,
-                                    expected_attrs=[], use_slave=True)
+                                    expected_attrs=[], use_subordinate=True)
 
     def test_poll_unconfirmed_resizes(self):
         instances = [
@@ -6483,7 +6483,7 @@ class ComputeTestCase(BaseTestCase):
             migrations.append(fake_mig)
 
         def fake_instance_get_by_uuid(context, instance_uuid,
-                columns_to_join=None, use_slave=False):
+                columns_to_join=None, use_subordinate=False):
             self.assertIn('metadata', columns_to_join)
             self.assertIn('system_metadata', columns_to_join)
             # raise InstanceNotFound exception for non-existing instance
@@ -6495,7 +6495,7 @@ class ComputeTestCase(BaseTestCase):
                     return instance
 
         def fake_migration_get_unconfirmed_by_dest_compute(context,
-                resize_confirm_window, dest_compute, use_slave=False):
+                resize_confirm_window, dest_compute, use_subordinate=False):
             self.assertEqual(dest_compute, CONF.host)
             return migrations
 
@@ -6996,7 +6996,7 @@ class ComputeTestCase(BaseTestCase):
         objects.InstanceList.get_by_filters(
             ctxt, mox.IgnoreArg(),
             expected_attrs=instance_obj.INSTANCE_DEFAULT_FIELDS,
-            use_slave=True
+            use_subordinate=True
             ).AndReturn(instances)
 
         # The first instance delete fails.
@@ -7037,12 +7037,12 @@ class ComputeTestCase(BaseTestCase):
             hardware.InstanceInfo(state=power_state.RUNNING))
         self.compute._sync_instance_power_state(ctxt, mox.IgnoreArg(),
                                                 power_state.RUNNING,
-                                                use_slave=True)
+                                                use_subordinate=True)
         self.compute.driver.get_info(mox.IgnoreArg()).AndReturn(
             hardware.InstanceInfo(state=power_state.SHUTDOWN))
         self.compute._sync_instance_power_state(ctxt, mox.IgnoreArg(),
                                                 power_state.SHUTDOWN,
-                                                use_slave=True)
+                                                use_subordinate=True)
         self.mox.ReplayAll()
         self.compute._sync_power_states(ctxt)
 
@@ -10998,7 +10998,7 @@ class ComputeAggrTestCase(BaseTestCase):
                        fake_driver_add_to_aggregate)
 
         self.compute.add_aggregate_host(self.context, host="host",
-                aggregate=jsonutils.to_primitive(self.aggr), slave_info=None)
+                aggregate=jsonutils.to_primitive(self.aggr), subordinate_info=None)
         self.assertTrue(fake_driver_add_to_aggregate.called)
 
     def test_remove_aggregate_host(self):
@@ -11012,36 +11012,36 @@ class ComputeAggrTestCase(BaseTestCase):
 
         self.compute.remove_aggregate_host(self.context,
                 aggregate=jsonutils.to_primitive(self.aggr), host="host",
-                slave_info=None)
+                subordinate_info=None)
         self.assertTrue(fake_driver_remove_from_aggregate.called)
 
-    def test_add_aggregate_host_passes_slave_info_to_driver(self):
+    def test_add_aggregate_host_passes_subordinate_info_to_driver(self):
         def driver_add_to_aggregate(context, aggregate, host, **kwargs):
             self.assertEqual(self.context, context)
             self.assertEqual(aggregate['id'], self.aggr['id'])
             self.assertEqual(host, "the_host")
-            self.assertEqual("SLAVE_INFO", kwargs.get("slave_info"))
+            self.assertEqual("SLAVE_INFO", kwargs.get("subordinate_info"))
 
         self.stubs.Set(self.compute.driver, "add_to_aggregate",
                        driver_add_to_aggregate)
 
         self.compute.add_aggregate_host(self.context, host="the_host",
-                slave_info="SLAVE_INFO",
+                subordinate_info="SLAVE_INFO",
                 aggregate=jsonutils.to_primitive(self.aggr))
 
-    def test_remove_from_aggregate_passes_slave_info_to_driver(self):
+    def test_remove_from_aggregate_passes_subordinate_info_to_driver(self):
         def driver_remove_from_aggregate(context, aggregate, host, **kwargs):
             self.assertEqual(self.context, context)
             self.assertEqual(aggregate['id'], self.aggr['id'])
             self.assertEqual(host, "the_host")
-            self.assertEqual("SLAVE_INFO", kwargs.get("slave_info"))
+            self.assertEqual("SLAVE_INFO", kwargs.get("subordinate_info"))
 
         self.stubs.Set(self.compute.driver, "remove_from_aggregate",
                        driver_remove_from_aggregate)
 
         self.compute.remove_aggregate_host(self.context,
                 aggregate=jsonutils.to_primitive(self.aggr), host="the_host",
-                slave_info="SLAVE_INFO")
+                subordinate_info="SLAVE_INFO")
 
 
 class ComputePolicyTestCase(BaseTestCase):

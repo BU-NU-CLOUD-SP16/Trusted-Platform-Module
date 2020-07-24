@@ -268,8 +268,8 @@ class ComputeNode(base.NovaPersistentObject, base.NovaObject):
     # TODO(pkholkin): Remove this method in the next major version bump
     @base.remotable_classmethod
     def get_first_node_by_host_for_old_compat(cls, context, host,
-                                              use_slave=False):
-        computes = ComputeNodeList.get_all_by_host(context, host, use_slave)
+                                              use_subordinate=False):
+        computes = ComputeNodeList.get_all_by_host(context, host, use_subordinate)
         # FIXME(sbauza): Some hypervisors (VMware, Ironic) can return multiple
         # nodes per host, we should return all the nodes and modify the callers
         # instead.
@@ -366,7 +366,7 @@ class ComputeNodeList(base.ObjectListBase, base.NovaObject):
     # Version 1.2 Add get_by_service()
     # Version 1.3 ComputeNode version 1.4
     # Version 1.4 ComputeNode version 1.5
-    # Version 1.5 Add use_slave to get_by_service
+    # Version 1.5 Add use_subordinate to get_by_service
     # Version 1.6 ComputeNode version 1.6
     # Version 1.7 ComputeNode version 1.7
     # Version 1.8 ComputeNode version 1.8 + add get_all_by_host()
@@ -397,7 +397,7 @@ class ComputeNodeList(base.ObjectListBase, base.NovaObject):
     # NOTE(hanlind): This is deprecated and should be removed on the next
     # major version bump
     @base.remotable_classmethod
-    def _get_by_service(cls, context, service_id, use_slave=False):
+    def _get_by_service(cls, context, service_id, use_subordinate=False):
         try:
             db_computes = db.compute_nodes_get_by_service_id(
                 context, service_id)
@@ -410,12 +410,12 @@ class ComputeNodeList(base.ObjectListBase, base.NovaObject):
 
     @staticmethod
     @db.select_db_reader_mode
-    def _db_compute_node_get_all_by_host(context, host, use_slave=False):
+    def _db_compute_node_get_all_by_host(context, host, use_subordinate=False):
         return db.compute_node_get_all_by_host(context, host)
 
     @base.remotable_classmethod
-    def get_all_by_host(cls, context, host, use_slave=False):
+    def get_all_by_host(cls, context, host, use_subordinate=False):
         db_computes = cls._db_compute_node_get_all_by_host(context, host,
-                                                      use_slave=use_slave)
+                                                      use_subordinate=use_subordinate)
         return base.obj_make_list(context, cls(context), objects.ComputeNode,
                                   db_computes)

@@ -188,7 +188,7 @@ class DecoratorTestCase(test.TestCase):
     def test_select_db_reader_mode_select_sync(self, mock_clone, mock_using):
 
         @db.select_db_reader_mode
-        def func(self, context, value, use_slave=False):
+        def func(self, context, value, use_subordinate=False):
             pass
 
         mock_clone.return_value = enginefacade._TransactionContextManager(
@@ -205,21 +205,21 @@ class DecoratorTestCase(test.TestCase):
     def test_select_db_reader_mode_select_async(self, mock_clone, mock_using):
 
         @db.select_db_reader_mode
-        def func(self, context, value, use_slave=False):
+        def func(self, context, value, use_subordinate=False):
             pass
 
         mock_clone.return_value = enginefacade._TransactionContextManager(
             mode=enginefacade._ASYNC_READER)
         ctxt = context.get_admin_context()
         value = 'some_value'
-        func(self, ctxt, value, use_slave=True)
+        func(self, ctxt, value, use_subordinate=True)
 
         mock_clone.assert_called_once_with(mode=enginefacade._ASYNC_READER)
         mock_using.assert_called_once_with(ctxt)
 
     @mock.patch.object(enginefacade._TransactionContextManager, 'using')
     @mock.patch.object(enginefacade._TransactionContextManager, '_clone')
-    def test_select_db_reader_mode_no_use_slave_select_sync(self, mock_clone,
+    def test_select_db_reader_mode_no_use_subordinate_select_sync(self, mock_clone,
                                                             mock_using):
 
         @db.select_db_reader_mode
@@ -1068,7 +1068,7 @@ class SqlAlchemyDbApiNoDbTestCase(test.NoDBTestCase):
 
         sqlalchemy_api.get_engine()
         mock_create_facade.assert_called_once_with()
-        mock_facade.get_engine.assert_called_once_with(use_slave=False)
+        mock_facade.get_engine.assert_called_once_with(use_subordinate=False)
 
     def test_get_db_conf_with_connection(self):
         mock_conf_group = mock.MagicMock()

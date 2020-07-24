@@ -97,8 +97,8 @@ def create_context_manager(connection):
 def select_db_reader_mode(f):
     """Decorator to select synchronous or asynchronous reader mode.
 
-    The kwarg argument 'use_slave' defines reader mode. Asynchronous reader
-    will be used if 'use_slave' is True and synchronous reader otherwise.
+    The kwarg argument 'use_subordinate' defines reader mode. Asynchronous reader
+    will be used if 'use_subordinate' is True and synchronous reader otherwise.
     """
     return IMPL.select_db_reader_mode(f)
 

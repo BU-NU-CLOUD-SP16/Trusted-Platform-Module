@@ -184,7 +184,7 @@ class _TestMigrationObject(object):
         self.mox.ReplayAll()
         migrations = (
             migration.MigrationList.get_unconfirmed_by_dest_compute(
-                ctxt, 'window', 'foo', use_slave=False))
+                ctxt, 'window', 'foo', use_subordinate=False))
         self.assertEqual(2, len(migrations))
         for index, db_migration in enumerate(db_migrations):
             self.compare_obj(migrations[index], db_migration)
