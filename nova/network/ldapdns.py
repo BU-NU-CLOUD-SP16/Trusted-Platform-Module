@@ -116,7 +116,7 @@ class DomainEntry(DNSEntry):
         date = time.strftime('%Y%m%d%H%M%S')
         soa = '%s %s %s %s %s %s %s' % (
                  CONF.ldap_dns_servers[0],
-                 CONF.ldap_dns_soa_hostmaster,
+                 CONF.ldap_dns_soa_hostmain,
                  date,
                  CONF.ldap_dns_soa_refresh,
                  CONF.ldap_dns_soa_retry,

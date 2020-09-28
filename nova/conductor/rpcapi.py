@@ -126,7 +126,7 @@ class ConductorAPI(object):
     * 1.62 - Added object_backport()
     * 1.63 - Changed the format of values['stats'] from a dict to a JSON string
              in compute_node_update()
-    * 1.64 - Added use_slave to instance_get_all_filters()
+    * 1.64 - Added use_subordinate to instance_get_all_filters()
            - Remove instance_type_get()
            - Remove aggregate_get()
            - Remove aggregate_get_by_host()

@@ -10831,7 +10831,7 @@ class LibvirtConnTestCase(test.NoDBTestCase):
             self.assertEqual(2, mock_info.call_count)
 
         filters = {'uuid': instance_uuids}
-        mock_get.assert_called_once_with(mock.ANY, filters, use_slave=True)
+        mock_get.assert_called_once_with(mock.ANY, filters, use_subordinate=True)
         mock_bdms.assert_called_with(mock.ANY, instance_uuids)
 
     @mock.patch.object(host.Host, "list_instance_domains")
@@ -10905,7 +10905,7 @@ class LibvirtConnTestCase(test.NoDBTestCase):
         mock_list.assert_called_once_with()
         self.assertEqual(2, get_disk_info.call_count)
         filters = {'uuid': instance_uuids}
-        mock_get.assert_called_once_with(mock.ANY, filters, use_slave=True)
+        mock_get.assert_called_once_with(mock.ANY, filters, use_subordinate=True)
         mock_bdms.assert_called_with(mock.ANY, instance_uuids)
 
     @mock.patch.object(host.Host, "list_instance_domains",

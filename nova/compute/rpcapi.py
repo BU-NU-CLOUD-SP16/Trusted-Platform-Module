@@ -162,7 +162,7 @@ class ComputeAPI(object):
 
         * 2.0 - Remove 1.x backwards compat
         * 2.1 - Adds orig_sys_metadata to rebuild_instance()
-        * 2.2 - Adds slave_info parameter to add_aggregate_host() and
+        * 2.2 - Adds subordinate_info parameter to add_aggregate_host() and
                 remove_aggregate_host()
         * 2.3 - Adds volume_id to reserve_block_device_name()
         * 2.4 - Add bdms to terminate_instance
@@ -395,7 +395,7 @@ class ComputeAPI(object):
                               serializer=serializer)
 
     def add_aggregate_host(self, ctxt, aggregate, host_param, host,
-                           slave_info=None):
+                           subordinate_info=None):
         '''Add aggregate host.
 
         :param ctxt: request context
@@ -408,7 +408,7 @@ class ComputeAPI(object):
         cctxt = self.client.prepare(server=host, version=version)
         cctxt.cast(ctxt, 'add_aggregate_host',
                    aggregate=aggregate, host=host_param,
-                   slave_info=slave_info)
+                   subordinate_info=subordinate_info)
 
     def add_fixed_ip_to_instance(self, ctxt, instance, network_id):
         version = '4.0'
@@ -763,7 +763,7 @@ class ComputeAPI(object):
                    **extra)
 
     def remove_aggregate_host(self, ctxt, aggregate, host_param, host,
-                              slave_info=None):
+                              subordinate_info=None):
         '''Remove aggregate host.
 
         :param ctxt: request context
@@ -776,7 +776,7 @@ class ComputeAPI(object):
         cctxt = self.client.prepare(server=host, version=version)
         cctxt.cast(ctxt, 'remove_aggregate_host',
                    aggregate=aggregate, host=host_param,
-                   slave_info=slave_info)
+                   subordinate_info=subordinate_info)
 
     def remove_fixed_ip_from_instance(self, ctxt, instance, address):
         version = '4.0'

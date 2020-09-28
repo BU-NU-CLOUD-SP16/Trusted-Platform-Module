@@ -152,7 +152,7 @@ class ComputeRpcAPITestCase(test.NoDBTestCase):
     def test_add_aggregate_host(self):
         self._test_compute_api('add_aggregate_host', 'cast',
                 aggregate={'id': 'fake_id'}, host_param='host', host='host',
-                slave_info={})
+                subordinate_info={})
 
     def test_add_fixed_ip_to_instance(self):
         self._test_compute_api('add_fixed_ip_to_instance', 'cast',
@@ -402,7 +402,7 @@ class ComputeRpcAPITestCase(test.NoDBTestCase):
     def test_remove_aggregate_host(self):
         self._test_compute_api('remove_aggregate_host', 'cast',
                 aggregate={'id': 'fake_id'}, host_param='host', host='host',
-                slave_info={})
+                subordinate_info={})
 
     def test_remove_fixed_ip_from_instance(self):
         self._test_compute_api('remove_fixed_ip_from_instance', 'cast',

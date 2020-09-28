@@ -82,7 +82,7 @@ class Service(base.NovaPersistentObject, base.NovaObject,
     # Version 1.1: Added compute_node nested object
     # Version 1.2: String attributes updated to support unicode
     # Version 1.3: ComputeNode version 1.5
-    # Version 1.4: Added use_slave to get_by_compute_host
+    # Version 1.4: Added use_subordinate to get_by_compute_host
     # Version 1.5: ComputeNode version 1.6
     # Version 1.6: ComputeNode version 1.7
     # Version 1.7: ComputeNode version 1.8
@@ -234,13 +234,13 @@ class Service(base.NovaPersistentObject, base.NovaObject,
 
     @staticmethod
     @db.select_db_reader_mode
-    def _db_service_get_by_compute_host(context, host, use_slave=False):
+    def _db_service_get_by_compute_host(context, host, use_subordinate=False):
         return db.service_get_by_compute_host(context, host)
 
     @base.remotable_classmethod
-    def get_by_compute_host(cls, context, host, use_slave=False):
+    def get_by_compute_host(cls, context, host, use_subordinate=False):
         db_service = cls._db_service_get_by_compute_host(context, host,
-                                                         use_slave=use_slave)
+                                                         use_subordinate=use_subordinate)
         return cls._from_db_object(context, cls(), db_service)
 
     # NOTE(ndipanov): This is deprecated and should be removed on the next
@@ -330,11 +330,11 @@ class Service(base.NovaPersistentObject, base.NovaObject,
 
     @staticmethod
     @db.select_db_reader_mode
-    def _db_service_get_minimum_version(context, binary, use_slave=False):
+    def _db_service_get_minimum_version(context, binary, use_subordinate=False):
         return db.service_get_minimum_version(context, binary)
 
     @base.remotable_classmethod
-    def get_minimum_version(cls, context, binary, use_slave=False):
+    def get_minimum_version(cls, context, binary, use_subordinate=False):
         if not binary.startswith('nova-'):
             LOG.warning(_LW('get_minimum_version called with likely-incorrect '
                             'binary `%s\''), binary)
@@ -346,7 +346,7 @@ class Service(base.NovaPersistentObject, base.NovaObject,
             if cached_version:
                 return cached_version
         version = cls._db_service_get_minimum_version(context, binary,
-                                                      use_slave=use_slave)
+                                                      use_subordinate=use_subordinate)
         if version is None:
             return 0
         # NOTE(danms): Since our return value is not controlled by object

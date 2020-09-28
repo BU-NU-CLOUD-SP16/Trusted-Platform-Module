@@ -195,7 +195,7 @@ class ApiTestCase(test.TestCase):
 
         def fake_instance_get_by_uuid(context, instance_uuid,
                                       columns_to_join=None,
-                                      use_slave=None):
+                                      use_subordinate=None):
             if instance_uuid == orig_instance_uuid:
                 self.assertIn('extra.flavor', columns_to_join)
             return fake_instance.fake_db_instance(uuid=instance_uuid)

@@ -74,10 +74,10 @@ class SessionTestCase(stubs.XenAPITestBaseNoDB):
         # First login fails, second login in except block succeeds,
         # third login for the pool succeeds
         sess.login_with_password.side_effect = [
-                XenAPI.Failure(['HOST_IS_SLAVE', 'master']), None, None]
+                XenAPI.Failure(['HOST_IS_SLAVE', 'main']), None, None]
         mock_version.return_value = ('version', 'brand')
 
-        session.XenAPISession('http://slave', 'username', 'password')
+        session.XenAPISession('http://subordinate', 'username', 'password')
         self.assertEqual(3, sess.login_with_password.call_count)
         self.assertEqual(3, mock_timeout.call_count)
 

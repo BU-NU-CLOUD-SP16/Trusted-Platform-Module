@@ -55,7 +55,7 @@ class ComputeXenTestCase(stubs.XenAPITestBaseNoDB):
 
         objects.InstanceList.get_by_host(ctxt,
                 self.compute.host, expected_attrs=[],
-                use_slave=True).AndReturn(instance_list)
+                use_subordinate=True).AndReturn(instance_list)
         self.compute.driver.get_num_instances().AndReturn(1)
         vm_utils.lookup(self.compute.driver._session, instance['name'],
                 False).AndReturn(None)
